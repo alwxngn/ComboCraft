@@ -27,17 +27,27 @@ let currentMana = 100;
 let maxMana = 100;
 let manaBalls = []; // Array to track active mana balls
 let lastManaBallSpawn = 0;
-const MANA_BALL_SPAWN_INTERVAL = 4000; // Spawn every 4 seconds (faster regen) 
+const MANA_BALL_SPAWN_INTERVAL = 4000; // Spawn every 4 seconds (faster regen)
+
+// Heal orb system
+let healOrbs = []; // Array to track active heal orbs
+let lastHealOrbSpawn = 0;
+const HEAL_ORB_SPAWN_INTERVAL = 6000; // Spawn every 6 seconds
+const HEAL_ORB_HEAL_AMOUNT = 25; // Health restored per orb 
 
 // Animation variables
 let activeAnimations = [];
 let lastHandPosition = null;
-let demonAnimationState = 'idle'; // 'idle', 'hit', or 'cleave'
+let demonAnimationState = 'idle'; // 'idle', 'hit', 'cleave', 'walk', 'enraged'
 let demonIdleInterval = null;
 let demonHitInterval = null; // Track hit animation interval
 let demonCleaveInterval = null; // Track cleave animation interval
 let lastBossAttackCheck = 0; // Track last boss attack check time
 const BOSS_ATTACK_CHECK_INTERVAL = 300; // Check every 300ms for more frequent attacks
+
+// Boss phase system
+let currentBossPhase = 1; // 1 = Normal (66-100%), 2 = Enraged (33-66%), 3 = Final Form (0-33%)
+let lastPhaseCheck = 0;
 
 // Game start time tracking
 let gameStartTime = Date.now();
@@ -301,8 +311,164 @@ function updateBossHealth(newHealth) {
         bossHealthBar.style.width = healthPercentage + '%';
     }
     
+    // Check for phase transitions
+    checkBossPhase();
+    
     console.log('Boss health:', bossHealth + '/' + MAX_BOSS_HEALTH);
     checkGameEnd();
+}
+
+// Check and update boss phase based on health
+function checkBossPhase() {
+    const healthPercent = (bossHealth / MAX_BOSS_HEALTH) * 100;
+    let newPhase = currentBossPhase;
+    
+    if (healthPercent > 66) {
+        newPhase = 1; // Phase 1: Normal
+    } else if (healthPercent > 33) {
+        newPhase = 2; // Phase 2: Enraged
+    } else {
+        newPhase = 3; // Phase 3: Final Form
+    }
+    
+    // Phase transition detected
+    if (newPhase !== currentBossPhase) {
+        currentBossPhase = newPhase;
+        onBossPhaseChange(newPhase);
+    }
+}
+
+// Handle boss phase transitions with visual effects
+function onBossPhaseChange(phase) {
+    const demonSprite = document.getElementById('demon-sprite');
+    const bossBox = document.querySelector('.boss-box');
+    const eventDisplay = document.getElementById('event-display');
+    
+    if (!demonSprite || !bossBox) return;
+    
+    // Remove any existing phase effects
+    demonSprite.style.filter = '';
+    demonSprite.style.transition = 'all 0.5s ease-in-out';
+    
+    // Restart idle animation with new speed for the phase
+    if (demonIdleInterval) {
+        clearInterval(demonIdleInterval);
+    }
+    
+    switch(phase) {
+        case 2: // Enraged
+            console.log('🔥 BOSS PHASE 2: ENRAGED!');
+            demonSprite.style.filter = 'brightness(1.2) saturate(1.5) hue-rotate(350deg)';
+            demonSprite.style.boxShadow = '0 0 30px rgba(255, 0, 0, 0.8), 0 0 60px rgba(255, 69, 0, 0.6)';
+            if (eventDisplay) {
+                eventDisplay.textContent = 'BOSS ENRAGED!';
+                eventDisplay.style.animation = 'none';
+                setTimeout(() => {
+                    eventDisplay.style.animation = 'eventPulse 1s ease-in-out infinite';
+                }, 10);
+            }
+            showPhaseTransitionMessage('ENRAGED', '#FF4500');
+            startDemonIdleAnimation(); // Restart with faster speed
+            break;
+            
+        case 3: // Final Form - Dark, crazy colors, stays in place
+            console.log('💀 BOSS PHASE 3: FINAL FORM!');
+            // Very dark with crazy color cycling - stays in same position
+            demonSprite.style.filter = 'brightness(0.7) saturate(2.5) hue-rotate(0deg) contrast(1.5)';
+            demonSprite.style.boxShadow = '0 0 50px rgba(75, 0, 130, 1), 0 0 100px rgba(139, 0, 139, 0.9), 0 0 150px rgba(25, 25, 112, 0.8), 0 0 200px rgba(139, 0, 0, 0.7)';
+            
+            // Only pulsing animation, no movement
+            bossBox.style.animation = 'bossFinalFormPulse 2s ease-in-out infinite';
+            
+            // Add color cycling effect
+            if (!document.getElementById('boss-final-form-color-cycle')) {
+                const colorCycle = setInterval(() => {
+                    const hue = (Date.now() / 20) % 360;
+                    const shadowColors = [
+                        `hsla(${hue}, 100%, 30%, 1)`,
+                        `hsla(${(hue + 60) % 360}, 100%, 25%, 0.9)`,
+                        `hsla(${(hue + 120) % 360}, 100%, 20%, 0.8)`,
+                        `hsla(${(hue + 180) % 360}, 100%, 15%, 0.7)`
+                    ];
+                    demonSprite.style.boxShadow = `
+                        0 0 50px ${shadowColors[0]},
+                        0 0 100px ${shadowColors[1]},
+                        0 0 150px ${shadowColors[2]},
+                        0 0 200px ${shadowColors[3]}
+                    `;
+                }, 50);
+                
+                // Store interval so we can clear it later
+                window.bossColorCycle = colorCycle;
+            }
+            
+            if (eventDisplay) {
+                eventDisplay.textContent = 'FINAL FORM ACTIVATED!';
+                eventDisplay.style.animation = 'none';
+                setTimeout(() => {
+                    eventDisplay.style.animation = 'eventPulse 0.5s ease-in-out infinite';
+                }, 10);
+            }
+            showPhaseTransitionMessage('FINAL FORM', '#8B0000');
+            startDemonIdleAnimation(); // Restart with faster speed
+            
+            // Add pulsing animation only (no movement)
+            if (!document.getElementById('boss-final-form-style')) {
+                const style = document.createElement('style');
+                style.id = 'boss-final-form-style';
+                style.textContent = `
+                    @keyframes bossFinalFormPulse {
+                        0%, 100% {
+                            filter: brightness(0.7);
+                        }
+                        50% {
+                            filter: brightness(0.9);
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            break;
+    }
+}
+
+// Show phase transition message
+function showPhaseTransitionMessage(text, color) {
+    const boxContainer = document.querySelector('.box-container');
+    if (!boxContainer) return;
+    
+    const message = document.createElement('div');
+    message.textContent = text;
+    message.style.position = 'absolute';
+    message.style.top = '50%';
+    message.style.left = '50%';
+    message.style.transform = 'translate(-50%, -50%)';
+    message.style.fontSize = '64px';
+    message.style.fontWeight = '900';
+    message.style.color = color;
+    message.style.textShadow = `0 0 30px ${color}, 0 0 60px ${color}, 2px 2px 4px rgba(0,0,0,0.9)`;
+    message.style.zIndex = '2000';
+    message.style.pointerEvents = 'none';
+    message.style.fontFamily = 'Bungee, cursive';
+    message.style.letterSpacing = '8px';
+    message.style.textTransform = 'uppercase';
+    message.style.opacity = '0';
+    message.style.transition = 'all 0.5s ease-out';
+    
+    boxContainer.appendChild(message);
+    
+    // Animate in
+    setTimeout(() => {
+        message.style.opacity = '1';
+        message.style.transform = 'translate(-50%, -50%) scale(1.2)';
+    }, 10);
+    
+    // Animate out and remove
+    setTimeout(() => {
+        message.style.opacity = '0';
+        message.style.transform = 'translate(-50%, -50%) scale(0.8)';
+        setTimeout(() => message.remove(), 500);
+    }, 2000);
 }
 
 // Function to update mana
@@ -356,6 +522,82 @@ function spawnManaBall() {
     }, 10000);
 }
 
+// Spawn a heal orb
+function spawnHealOrb() {
+    const boxContainer = document.querySelector('.box-container');
+    if (!boxContainer) return;
+    
+    const containerRect = boxContainer.getBoundingClientRect();
+    // Spawn at random Y position, X position in middle area
+    const x = containerRect.width * 0.3 + Math.random() * containerRect.width * 0.4;
+    const y = 100 + Math.random() * (containerRect.height - 200);
+    
+    const healOrb = document.createElement('div');
+    healOrb.className = 'heal-orb';
+    healOrb.style.left = x + 'px';
+    healOrb.style.top = y + 'px';
+    healOrb.id = 'heal-orb-' + Date.now();
+    
+    boxContainer.appendChild(healOrb);
+    
+    const orbData = {
+        element: healOrb,
+        x: x,
+        y: y,
+        width: 45,
+        height: 45,
+        id: healOrb.id
+    };
+    
+    healOrbs.push(orbData);
+    
+    // Remove after 12 seconds if not collected
+    setTimeout(() => {
+        const index = healOrbs.findIndex(o => o.id === orbData.id);
+        if (index !== -1) {
+            healOrbs.splice(index, 1);
+            healOrb.remove();
+        }
+    }, 12000);
+}
+
+// Check collision between projectile and heal orbs
+function checkHealOrbCollision(projectileX, projectileY, projectileSize) {
+    for (let i = healOrbs.length - 1; i >= 0; i--) {
+        const orb = healOrbs[i];
+        const orbCenterX = orb.x + 22.5;
+        const orbCenterY = orb.y + 22.5;
+        
+        // Simple circle collision detection
+        const distance = Math.sqrt(
+            Math.pow(projectileX - orbCenterX, 2) + 
+            Math.pow(projectileY - orbCenterY, 2)
+        );
+        
+        if (distance < (projectileSize / 2 + 22.5)) {
+            // Hit! Remove orb and heal player
+            orb.element.remove();
+            healOrbs.splice(i, 1);
+            
+            // Show heal feedback
+            const boxContainer = document.querySelector('.box-container');
+            if (boxContainer) {
+                const orbRect = orb.element.getBoundingClientRect();
+                const containerRect = boxContainer.getBoundingClientRect();
+                const x = orbRect.left - containerRect.left + 22.5;
+                const y = orbRect.top - containerRect.top + 22.5;
+                showHealFeedback(HEAL_ORB_HEAL_AMOUNT, x, y);
+            }
+            
+            // Heal player
+            updatePlayerHealth(playerHealth + HEAL_ORB_HEAL_AMOUNT);
+            
+            return true;
+        }
+    }
+    return false;
+}
+
 // Check collision between projectile and mana balls
 function checkManaBallCollision(projectileX, projectileY, projectileSize) {
     for (let i = manaBalls.length - 1; i >= 0; i--) {
@@ -406,19 +648,53 @@ function resetHealth() {
     manaBalls.forEach(ball => ball.element.remove());
     manaBalls = [];
     lastManaBallSpawn = Date.now();
+    
+    // Clear all heal orbs
+    healOrbs.forEach(orb => orb.element.remove());
+    healOrbs = [];
+    lastHealOrbSpawn = Date.now();
+    
+    // Reset boss phase
+    currentBossPhase = 1;
+    const demonSprite = document.getElementById('demon-sprite');
+    const bossBox = document.querySelector('.boss-box');
+    if (demonSprite) {
+        demonSprite.style.filter = '';
+        demonSprite.style.boxShadow = '';
+        demonSprite.style.transition = '';
+        demonSprite.style.opacity = '1';
+        demonSprite.style.transform = '';
+    }
+    if (bossBox) {
+        bossBox.style.animation = '';
+    }
+    
+    // Clear color cycling if active
+    if (window.bossColorCycle) {
+        clearInterval(window.bossColorCycle);
+        window.bossColorCycle = null;
+    }
+    
     console.log('Health and mana reset!');
     
 }
 
 function checkGameEnd() {
-    if (playerHealth <= 0) {
+    if (playerHealth <= 0 && gameRunning) {
         console.log('Player defeated! Boss wins!');
         gameRunning = false;
-        showGameOverScreen(false); // false = defeat
-    } else if (bossHealth <= 0) {
+        // Small delay to ensure game state is updated
+        setTimeout(() => {
+            showGameOverScreen(false); // false = defeat
+        }, 100);
+    } else if (bossHealth <= 0 && gameRunning) {
         console.log('Boss defeated! Player wins!');
         gameRunning = false;
-        showGameOverScreen(true); // true = victory
+        
+        // Play death animation before showing victory screen
+        playDemonDeathAnimation(() => {
+            showGameOverScreen(true); // true = victory
+        });
     }
 }
 
@@ -493,21 +769,58 @@ function showGameOverScreen(isVictory) {
         }
         overlay.appendChild(fireContainer);
     } else {
-        // Dark defeat background
+        // Dark fiery defeat background
         overlay.style.cssText = `
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.98);
+            background: radial-gradient(circle at center, rgba(30, 0, 0, 0.98) 0%, rgba(0, 0, 0, 1) 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
             animation: fadeIn 0.5s ease-in;
+            overflow: hidden;
         `;
+        
+        // Create dark fire/embers background for defeat
+        const fireContainer = document.createElement('div');
+        fireContainer.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        `;
+        
+        // Add dark ember effects
+        for (let i = 0; i < 25; i++) {
+            const ember = document.createElement('div');
+            const x = Math.random() * 100;
+            const delay = Math.random() * 3;
+            const duration = 3 + Math.random() * 2;
+            ember.style.cssText = `
+                position: absolute;
+                bottom: ${Math.random() * 30}%;
+                left: ${x}%;
+                width: ${10 + Math.random() * 20}px;
+                height: ${30 + Math.random() * 50}px;
+                background: linear-gradient(to top, 
+                    rgba(80, 0, 0, 0.9) 0%,
+                    rgba(139, 0, 0, 0.7) 50%,
+                    rgba(200, 0, 0, 0.3) 100%);
+                border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+                animation: flicker ${duration}s ${delay}s infinite ease-in-out;
+                filter: blur(3px);
+            `;
+            fireContainer.appendChild(ember);
+        }
+        overlay.appendChild(fireContainer);
     }
     
     // Add animations and styles
@@ -567,19 +880,52 @@ function showGameOverScreen(isVictory) {
                 filter: drop-shadow(0 0 20px currentColor) drop-shadow(0 0 30px currentColor);
             }
         }
+        @keyframes defeatPulse {
+            0%, 100% {
+                text-shadow: 
+                    0 0 15px #8B0000,
+                    0 0 25px #8B0000,
+                    0 0 35px #CC0000,
+                    0 0 45px #8B0000,
+                    0 0 65px #660000;
+            }
+            50% {
+                text-shadow: 
+                    0 0 25px #CC0000,
+                    0 0 35px #CC0000,
+                    0 0 45px #8B0000,
+                    0 0 55px #660000,
+                    0 0 75px #8B0000,
+                    0 0 95px #CC0000;
+            }
+        }
+        @keyframes bossMoveBackForth {
+            0%, 100% {
+                transform: translateX(0) scale(1);
+            }
+            25% {
+                transform: translateX(-80px) scale(0.95);
+            }
+            50% {
+                transform: translateX(-120px) scale(0.92);
+            }
+            75% {
+                transform: translateX(-80px) scale(0.95);
+            }
+        }
     `;
     document.head.appendChild(style);
     
     const title = document.createElement('h1');
     title.textContent = isVictory ? 'VICTORY' : 'DEFEAT';
     title.style.cssText = `
-        color: ${isVictory ? '#FF4500' : '#CC0000'};
+        color: ${isVictory ? '#FF4500' : '#8B0000'};
         font-size: 96px;
         font-weight: 900;
         margin-bottom: 30px;
         letter-spacing: 8px;
         text-transform: uppercase;
-        animation: ${isVictory ? 'burn 2s ease-in-out infinite, slideUp 0.8s ease-out' : 'glow 2s ease-in-out infinite, slideUp 0.8s ease-out'};
+        animation: ${isVictory ? 'burn 2s ease-in-out infinite, slideUp 0.8s ease-out' : 'defeatPulse 2s ease-in-out infinite, slideUp 0.8s ease-out'};
         font-family: 'Bungee', cursive;
         position: relative;
         z-index: 10;
@@ -591,17 +937,19 @@ function showGameOverScreen(isVictory) {
             0 0 70px #FF4500,
             2px 2px 4px rgba(0,0,0,0.8)
         ` : `
-            0 0 10px #CC0000,
-            0 0 20px #CC0000,
-            0 0 30px #990000,
-            2px 2px 4px rgba(0,0,0,0.8)
+            0 0 15px #8B0000,
+            0 0 25px #8B0000,
+            0 0 35px #CC0000,
+            0 0 45px #8B0000,
+            0 0 65px #660000,
+            2px 2px 4px rgba(0,0,0,0.9)
         `};
     `;
     
     // Add stats
     const stats = document.createElement('div');
     stats.style.cssText = `
-        color: ${isVictory ? '#FFD700' : '#FFFFFF'};
+        color: ${isVictory ? '#FFD700' : '#CCCCCC'};
         font-size: 28px;
         margin-bottom: 40px;
         text-align: center;
@@ -615,7 +963,9 @@ function showGameOverScreen(isVictory) {
             0 0 20px rgba(255, 140, 0, 0.6),
             2px 2px 4px rgba(0,0,0,0.8)
         ` : `
-            2px 2px 4px rgba(0,0,0,0.8)
+            0 0 10px rgba(200, 200, 200, 0.6),
+            0 0 20px rgba(139, 0, 0, 0.4),
+            2px 2px 4px rgba(0,0,0,0.9)
         `};
     `;
     const gameTime = typeof gameStartTime !== 'undefined' ? Math.floor((Date.now() - gameStartTime) / 1000) : 0;
@@ -661,8 +1011,12 @@ function showGameOverScreen(isVictory) {
                 inset 0 0 30px rgba(255, 215, 0, 0.4)
             `;
         } else {
-            this.style.background = 'linear-gradient(135deg, #990000, #CC0000)';
-            this.style.boxShadow = '0 10px 20px rgba(0,0,0,0.5), inset 0 0 30px rgba(255,255,255,0.2)';
+            this.style.background = 'linear-gradient(135deg, #990000, #8B0000)';
+            this.style.boxShadow = `
+                0 0 25px rgba(139, 0, 0, 0.8),
+                0 10px 20px rgba(0,0,0,0.6),
+                inset 0 0 30px rgba(200, 0, 0, 0.3)
+            `;
         }
         this.style.transform = 'scale(1.08) translateY(-2px)';
     };
@@ -675,8 +1029,12 @@ function showGameOverScreen(isVictory) {
                 inset 0 0 20px rgba(255, 215, 0, 0.3)
             `;
         } else {
-            this.style.background = 'linear-gradient(135deg, #CC0000, #990000)';
-            this.style.boxShadow = '0 8px 16px rgba(0,0,0,0.4), inset 0 0 20px rgba(255,255,255,0.1)';
+            this.style.background = 'linear-gradient(135deg, #8B0000, #990000)';
+            this.style.boxShadow = `
+                0 0 20px rgba(139, 0, 0, 0.6),
+                0 8px 16px rgba(0,0,0,0.5),
+                inset 0 0 20px rgba(200, 0, 0, 0.2)
+            `;
         }
         this.style.transform = 'scale(1) translateY(0)';
     };
@@ -836,6 +1194,48 @@ function showManaGainFeedback(amount, x, y) {
     requestAnimationFrame(animate);
 }
 
+// Show heal feedback
+function showHealFeedback(amount, x, y) {
+    const boxContainer = document.querySelector('.box-container');
+    if (!boxContainer) return;
+    
+    const healText = document.createElement('div');
+    healText.textContent = `+${amount} HP`;
+    healText.style.position = 'absolute';
+    healText.style.left = x + 'px';
+    healText.style.top = y + 'px';
+    healText.style.fontSize = '28px';
+    healText.style.fontWeight = 'bold';
+    healText.style.color = '#00FF88';
+    healText.style.textShadow = '0 0 10px #00FF88, 0 0 20px #00FF88, 2px 2px 4px rgba(0,0,0,0.8)';
+    healText.style.zIndex = '1002';
+    healText.style.pointerEvents = 'none';
+    healText.style.userSelect = 'none';
+    healText.style.fontFamily = '"Orbitron", sans-serif';
+    
+    boxContainer.appendChild(healText);
+    
+    // Animate heal text
+    let startY = y;
+    let opacity = 1;
+    let scale = 0.8;
+    const animate = () => {
+        startY -= 3;
+        opacity -= 0.015;
+        scale += 0.02;
+        healText.style.top = startY + 'px';
+        healText.style.opacity = opacity;
+        healText.style.transform = `scale(${scale})`;
+        
+        if (opacity > 0) {
+            requestAnimationFrame(animate);
+        } else {
+            healText.remove();
+        }
+    };
+    requestAnimationFrame(animate);
+}
+
 function replayGame() {
     // Remove game over overlay
     const overlay = document.getElementById('game-over-overlay');
@@ -921,6 +1321,11 @@ function playFireballAnimation(damage = 10) { // Default damage is 10
         const fireballCenterY = startY;
         if (checkManaBallCollision(currentX, fireballCenterY, currentSize)) {
             // Hit a mana ball, continue flying but don't damage boss
+        }
+        
+        // Check for heal orb collision
+        if (checkHealOrbCollision(currentX, fireballCenterY, currentSize)) {
+            // Hit a heal orb, continue flying but don't damage boss
         }
 
         // Remove when it reaches the boss box
@@ -1009,6 +1414,11 @@ function playIceShardAnimation() {
             // Hit a mana ball, continue flying but don't damage boss
         }
         
+        // Check for heal orb collision
+        if (checkHealOrbCollision(currentX, startY, currentSize)) {
+            // Hit a heal orb, continue flying but don't damage boss
+        }
+        
         // Remove when it reaches the boss box
         if (currentX > targetX) {
             clearInterval(animationInterval);
@@ -1093,8 +1503,11 @@ function startDemonIdleAnimation() {
         if (demonAnimationState === 'idle') {
             currentFrame = (currentFrame + 1) % idleFrames.length;
             demonSprite.src = `../assets/demon idle/${idleFrames[currentFrame]}`;
+            
+            // Phase 2+ idle animation is faster and more aggressive
+            // Animation speed is handled by interval timing
         }
-    }, 150);
+    }, currentBossPhase >= 2 ? 120 : 150); // Faster idle in later phases
 }
 
 // Demon take hit animation
@@ -1166,8 +1579,8 @@ function playDemonHitAnimation(damage = 0) {
 
 // Demon cleave attack animation
 function playDemonCleaveAnimation(damage = 0) {
-    // Don't start if already cleaving
-    if (demonAnimationState === 'cleave') {
+    // Don't start if already cleaving or walking
+    if (demonAnimationState === 'cleave' || demonAnimationState === 'walk') {
         return;
     }
     
@@ -1199,6 +1612,9 @@ function playDemonCleaveAnimation(damage = 0) {
     demonAnimationState = 'cleave';
     let currentFrame = 0;
     
+    // Phase 2+ uses faster animation
+    const frameSpeed = currentBossPhase >= 2 ? 65 : 80;
+    
     demonCleaveInterval = setInterval(() => {
         if (currentFrame < cleaveFrames.length) {
             demonSprite.src = `../assets/demon_cleave/${cleaveFrames[currentFrame]}`;
@@ -1213,7 +1629,154 @@ function playDemonCleaveAnimation(damage = 0) {
                 updatePlayerHealth(playerHealth - damage);
             }
         }
-    }, 80); // Slightly faster than hit animation for more dramatic effect
+    }, frameSpeed);
+}
+
+// Demon walk attack animation (phase 2+)
+function playDemonWalkAttack(damage = 0) {
+    // Don't start if already attacking
+    if (demonAnimationState === 'cleave' || demonAnimationState === 'walk') {
+        return;
+    }
+    
+    // Clear any existing hit animation
+    if (demonHitInterval) {
+        clearInterval(demonHitInterval);
+        demonHitInterval = null;
+    }
+    
+    const demonSprite = document.getElementById('demon-sprite');
+    const walkFrames = [
+        'demon_walk_1.png',
+        'demon_walk_2.png',
+        'demon_walk_3.png',
+        'demon_walk_4.png',
+        'demon_walk_5.png',
+        'demon_walk_6.png',
+        'demon_walk_7.png',
+        'demon_walk_8.png',
+        'demon_walk_9.png',
+        'demon_walk_10.png',
+        'demon_walk_11.png',
+        'demon_walk_12.png'
+    ];
+    
+    demonAnimationState = 'walk';
+    let currentFrame = 0;
+    const totalFrames = walkFrames.length * 2; // Loop through twice for attack
+    
+    // Faster in phase 3
+    const frameSpeed = currentBossPhase === 3 ? 50 : 70;
+    
+    const walkInterval = setInterval(() => {
+        if (currentFrame < totalFrames) {
+            const frameIndex = currentFrame % walkFrames.length;
+            demonSprite.src = `../assets/demon walk/${walkFrames[frameIndex]}`;
+            currentFrame++;
+        } else {
+            clearInterval(walkInterval);
+            demonAnimationState = 'idle'; // Return to idle
+            
+            // Apply damage after walk attack completes
+            if (damage > 0) {
+                updatePlayerHealth(playerHealth - damage);
+            }
+        }
+    }, frameSpeed);
+}
+
+// Demon death animation
+function playDemonDeathAnimation(callback) {
+    // Stop all other animations
+    if (demonIdleInterval) {
+        clearInterval(demonIdleInterval);
+        demonIdleInterval = null;
+    }
+    if (demonHitInterval) {
+        clearInterval(demonHitInterval);
+        demonHitInterval = null;
+    }
+    if (demonCleaveInterval) {
+        clearInterval(demonCleaveInterval);
+        demonCleaveInterval = null;
+    }
+    
+    // Stop color cycling if active
+    if (window.bossColorCycle) {
+        clearInterval(window.bossColorCycle);
+        window.bossColorCycle = null;
+    }
+    
+    // Stop boss movement
+    const bossBox = document.querySelector('.boss-box');
+    if (bossBox) {
+        bossBox.style.animation = '';
+    }
+    
+    const demonSprite = document.getElementById('demon-sprite');
+    if (!demonSprite) {
+        if (callback) callback();
+        return;
+    }
+    
+    const deathFrames = [
+        'demon_death_1.png',
+        'demon_death_2.png',
+        'demon_death_3.png',
+        'demon_death_4.png',
+        'demon_death_5.png',
+        'demon_death_6.png',
+        'demon_death_7.png',
+        'demon_death_8.png',
+        'demon_death_9.png',
+        'demon_death_10.png',
+        'demon_death_11.png',
+        'demon_death_12.png',
+        'demon_death_13.png',
+        'demon_death_14.png',
+        'demon_death_15.png',
+        'demon_death_16.png',
+        'demon_death_17.png',
+        'demon_death_18.png',
+        'demon_death_19.png',
+        'demon_death_20.png',
+        'demon_death_21.png',
+        'demon_death_22.png'
+    ];
+    
+    demonAnimationState = 'death';
+    let currentFrame = 0;
+    
+    // Fade out effect
+    demonSprite.style.transition = 'opacity 3s ease-out, transform 3s ease-out';
+    
+    const deathInterval = setInterval(() => {
+        if (currentFrame < deathFrames.length) {
+            demonSprite.src = `../assets/demon_death/${deathFrames[currentFrame]}`;
+            
+            // Start fading and shrinking near the end
+            if (currentFrame > deathFrames.length * 0.7) {
+                const fadeProgress = (currentFrame - deathFrames.length * 0.7) / (deathFrames.length * 0.3);
+                demonSprite.style.opacity = (1 - fadeProgress).toString();
+                demonSprite.style.transform = `scale(${1 - fadeProgress * 0.3})`;
+            }
+            
+            currentFrame++;
+        } else {
+            clearInterval(deathInterval);
+            
+            // Final fade out
+            setTimeout(() => {
+                demonSprite.style.opacity = '0';
+                demonSprite.style.transform = 'scale(0.5)';
+                
+                // Call callback after animation completes
+                setTimeout(() => {
+                    if (callback) callback();
+                }, 500);
+            }, 200);
+        }
+    }, 100); // Slower for dramatic death
 }
 
 // Function to show a temporary "Challenge Complete!" message
@@ -1292,6 +1855,12 @@ async function gameLoop(){
     if (now - lastManaBallSpawn >= MANA_BALL_SPAWN_INTERVAL) {
         spawnManaBall();
         lastManaBallSpawn = now;
+    }
+    
+    // Spawn heal orbs periodically
+    if (now - lastHealOrbSpawn >= HEAL_ORB_SPAWN_INTERVAL) {
+        spawnHealOrb();
+        lastHealOrbSpawn = now;
     }
 
     // --- ⭐️ NEW COMMAND & EVENT LOGIC ⭐️ ---
@@ -1379,17 +1948,57 @@ async function gameLoop(){
         }, 500);
     }
 
-    // Boss's random attack with delay to reduce lag
+    // Boss's phase-specific attack system
     const currentTime = Date.now();
     if (currentTime - lastBossAttackCheck >= BOSS_ATTACK_CHECK_INTERVAL) {
         lastBossAttackCheck = currentTime;
         
-        // Randomized boss attack - even more frequent with varied damage
-        if (Math.random() < 0.18) { // 18% chance every 300ms (increased from 12%)
-            // Randomize damage between 8-25 (wider range)
-            let bossDamage = Math.floor(Math.random() * 18) + 8; // Random between 8-25
-            console.log('Boss cleaves for', bossDamage, 'damage!');
-            playDemonCleaveAnimation(bossDamage); // Play cleave animation, damage applied after animation
+        // Phase-specific attack patterns
+        let attackChance = 0;
+        let bossDamage = 0;
+        let attackType = 'cleave';
+        
+        switch(currentBossPhase) {
+            case 1: // Phase 1: Normal - Standard attacks
+                attackChance = 0.15; // 15% chance every 300ms
+                bossDamage = Math.floor(Math.random() * 12) + 8; // 8-20 damage
+                attackType = 'cleave';
+                break;
+                
+            case 2: // Phase 2: Enraged - Faster, stronger attacks
+                attackChance = 0.25; // 25% chance (more frequent)
+                bossDamage = Math.floor(Math.random() * 15) + 12; // 12-27 damage
+                attackType = Math.random() < 0.7 ? 'cleave' : 'walk'; // 70% cleave, 30% walk
+                break;
+                
+            case 3: // Phase 3: Final Form - Multiple attack types (reduced damage)
+                attackChance = 0.25; // 25% chance (reduced from 35%)
+                bossDamage = Math.floor(Math.random() * 10) + 10; // 10-20 damage (reduced from 15-33)
+                const rand = Math.random();
+                if (rand < 0.6) {
+                    attackType = 'cleave';
+                } else if (rand < 0.85) {
+                    attackType = 'walk';
+                } else {
+                    attackType = 'double'; // 15% chance for double attack (reduced)
+                }
+                break;
+        }
+        
+        if (Math.random() < attackChance) {
+            console.log(`Boss ${attackType} attack for ${bossDamage} damage! (Phase ${currentBossPhase})`);
+            
+            if (attackType === 'cleave') {
+                playDemonCleaveAnimation(bossDamage);
+            } else if (attackType === 'walk') {
+                playDemonWalkAttack(bossDamage);
+            } else if (attackType === 'double') {
+                // Double attack - two attacks in quick succession
+                playDemonCleaveAnimation(Math.floor(bossDamage * 0.6));
+                setTimeout(() => {
+                    playDemonCleaveAnimation(Math.floor(bossDamage * 0.6));
+                }, 800);
+            }
         }
     }
     
