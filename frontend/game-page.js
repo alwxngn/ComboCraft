@@ -2,24 +2,23 @@
 let playerHealth = 100;
 let bossHealth = 100;
 let gameRunning = false;
+let comboCount = 0; // <-- FIX 2.1: Declared comboCount here
 
 // Wait for page to load
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Game loaded!");
     resetHealth();
+    gameRunning = true; // <-- START THE GAME!
+    gameLoop();         // <-- START THE LOOP!
 });
 
 // Function to update player health
 function updatePlayerHealth(newHealth) {
     playerHealth = Math.max(0, Math.min(100, newHealth));
     const playerHealthBar = document.getElementById('player-hp-fill');
-    const slider = document.getElementById('playerSlider');
     
     if (playerHealthBar) {
         playerHealthBar.style.width = playerHealth + '%';
-    }
-    if (slider) {
-        slider.value = playerHealth;
     }
     
     console.log('Player health:', playerHealth + '%');
@@ -30,62 +29,20 @@ function updatePlayerHealth(newHealth) {
 function updateBossHealth(newHealth) {
     bossHealth = Math.max(0, Math.min(100, newHealth));
     const bossHealthBar = document.getElementById('boss-hp-fill');
-    const slider = document.getElementById('bossSlider');
     
     if (bossHealthBar) {
         bossHealthBar.style.width = bossHealth + '%';
-    }
-    if (slider) {
-        slider.value = bossHealth;
     }
     
     console.log('Boss health:', bossHealth + '%');
     checkGameEnd();
 }
 
-// TEST FUNCTIONS
-function simulatePlayerAttack() {
-    const damage = Math.floor(Math.random() * 20) + 10; // 10-30 damage
-    updateBossHealth(bossHealth - damage);
-    console.log('Player attacks for', damage, 'damage!');
-}
-
-function simulateBossAttack() {
-    const damage = Math.floor(Math.random() * 15) + 8; // 8-23 damage
-    updatePlayerHealth(playerHealth - damage);
-    console.log('Boss attacks for', damage, 'damage!');
-}
-
 function resetHealth() {
     updatePlayerHealth(100);
     updateBossHealth(100);
     console.log('Health reset!');
-}
-
-function simulateGameLoop() {
-    if (gameRunning) {
-        gameRunning = false;
-        console.log('Auto battle stopped');
-        return;
-    }
     
-    gameRunning = true;
-    console.log('Auto battle started!');
-    
-    const battleInterval = setInterval(() => {
-        if (!gameRunning || playerHealth <= 0 || bossHealth <= 0) {
-            clearInterval(battleInterval);
-            gameRunning = false;
-            return;
-        }
-        
-        // Alternate attacks
-        if (Math.random() > 0.5) {
-            simulatePlayerAttack();
-        } else {
-            simulateBossAttack();
-        }
-    }, 1000); // Attack every second
 }
 
 function checkGameEnd() {
@@ -98,12 +55,87 @@ function checkGameEnd() {
     }
 }
 
-// Keyboard shortcuts for testing
-document.addEventListener('keydown', function(event) {
-    switch(event.key) {
-        case '1': simulatePlayerAttack(); break;
-        case '2': simulateBossAttack(); break;
-        case 'r': resetHealth(); break;
-        case 'a': simulateGameLoop(); break;
+// ALEXES CONNECTOR TO SORCERER
+
+async function gameLoop(){
+    if (!gameRunning) return;
+        
+    let command = "NONE";
+    let event = "NONE";
+
+
+    try {
+        // my 5001 port // getting all the commands from the flask
+        const response = await fetch('http://localhost:5001/get_command');
+        const data = await response.json();
+
+        command = data.command
+        event = data.event || "NONE"; // (FOR the qte)
+        
+        // --- FIX 2.2: Moved this line INSIDE the 'try' block ---
+        comboCount = data.combo; 
+        
+    } catch (error) {
+        console.error("Backend server is down!");
+        requestAnimationFrame(gameLoop);
+        return;
     }
-});
+
+    // --- This is the "Hand-off" ---
+    // It calls Ally's functions based on your commands.
+    // This logic is 100% correct!
+    if (command === "FIREBALL") {
+        let damage = 10
+        updateBossHealth(bossHealth - damage);
+    }
+
+    else if (command === "ICE_SHARD") {
+        let damage = 8
+        updateBossHealth(bossHealth - damage);
+    }
+
+    else if (command === "HEAL") {
+        let hp = 12
+        updatePlayerHealth(playerHealth + hp);
+        
+    }
+
+    else if (command === "EXPLOSION_COMBO") {
+        let damage = 20
+        updateBossHealth(bossHealth - damage);
+    }
+
+    else if (command === "HEALING_LIGHT_COMBO") {
+        let damage = 12
+        let hp = 5
+        updateBossHealth(bossHealth - damage);
+        updatePlayerHealth(playerHealth + hp);
+    }
+
+    if (Math.random() < 0.01) { 
+        let bossDamage = 15; // The boss hits for 15 damage
+        console.log('Boss attacks for', bossDamage, 'damage!');
+        
+        // --- HERE IT IS! ---
+        // We call Ally's function to hurt the player!
+        updatePlayerHealth(playerHealth - bossDamage);
+    }
+    
+    // --- FIX 1: Changed 'data.event' to 'event' ---
+    if (event !== "NONE") {
+        console.log(`EVENT: Server wants us to do ${event}!`);
+        // TODO: Show this on the UI
+        
+        // --- FIX 1.2: Also fixed it here ---
+        if (event === "WEAKFIRE" && command === "FIREBALL") {
+            console.log("WEAK POINT HIT! +10 DAMAGE!");
+            updateBossHealth(bossHealth - 10);
+        }
+    }
+    
+    // (The line `comboCount = data.combo;` was here, but we moved it up)
+    
+    requestAnimationFrame(gameLoop);
+}
+
+// (We can delete the old DOMContentLoaded listener, as we have a new one)
