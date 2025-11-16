@@ -159,13 +159,14 @@ Dynamic boss encounters:
 
 <!-- Add screenshots here -->
 - *Screenshot 1: Title Screen*
-- <img width="3420" height="2214" alt="image" src="https://github.com/user-attachments/assets/dd6d8c77-a3bd-442a-82b6-1f5c7ad5e4b3" />
+   <img width="1710" height="980" alt="Screenshot 2025-11-16 at 9 58 58 AM" src="https://github.com/user-attachments/assets/f0af6b36-a2aa-4c19-87fa-1727a9e2dff9" />
 - *Screenshot 2: Gameplay with gesture detection*
-  <img width="3420" height="2214" alt="image" src="https://github.com/user-attachments/assets/92794358-7fd1-4012-a4b6-6010a0a54eb9" />
+  <img width="1710" height="883" alt="Screenshot 2025-11-16 at 9 58 16 AM" src="https://github.com/user-attachments/assets/3dd7d87a-2a75-492c-9738-cf4032a20205" />
 - *Screenshot 3: Controls*
-  <img width="3420" height="2214" alt="image" src="https://github.com/user-attachments/assets/c1d6a357-77b7-481c-b66b-7e69198a4d4b" />
+  <img width="1710" height="982" alt="Screenshot 2025-11-16 at 9 59 12 AM" src="https://github.com/user-attachments/assets/fe0ff8ee-4ea2-4d23-8b13-b9c8079737f8" />
 - *Screenshot 4: Bosses*
-  <img width="3420" height="2214" alt="image" src="https://github.com/user-attachments/assets/b385954c-4208-48d5-8653-51cfdf6f4197" />
+  <img width="1710" height="982" alt="Screenshot 2025-11-16 at 9 59 05 AM" src="https://github.com/user-attachments/assets/bf0420f4-c1cf-4e9b-9907-7fd41410ca2d" />
+
 
 
 ## 🎥 Demo Video
