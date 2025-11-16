@@ -107,16 +107,22 @@ def get_command():
     #
     last_gesture = current_gesture
 
-    event_list = ["WEAKFIRE", "WEAKICE", "NONE", "NONE"]
+    event_list = ["WEAKFIRE", "WEAKICE", "NONE", "NONE","NONE","NONE","NONE","NONE","NONE","NONE"]
     current_event = random.choice(event_list)
 
 
 
     
 
-
+    current_time = time.time()
+    cooldown_time = max(0, ATTACK_COOLDOWN - (current_time - last_attack_time))
     # This is the "API Contract"
-    return jsonify({"command": command, "event": current_event, "combo": combo_counter, "gesture": current_gesture})
+    return jsonify({"command": command, 
+                    "event": current_event, 
+                    "combo": combo_counter, 
+                    "gesture": current_gesture
+                    , "cooldown": cooldown_time
+                    })
 
 
 # This makes the server run when you type `python backend/server.py`
