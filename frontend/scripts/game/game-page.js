@@ -1,8 +1,8 @@
 // Initialize health values
 let playerHealth = 250;
 const MAX_PLAYER_HEALTH = 250;
-let bossHealth = 200;
-const MAX_BOSS_HEALTH = 200;
+let bossHealth = 150;
+const MAX_BOSS_HEALTH = 150;
 let gameRunning = false;
 let comboCount = 0;
 let highestCombo = 0; // Track highest combo achieved
