@@ -207,5 +207,5 @@ Created by the ComboCraft team.
 - **OpenGameArt** - For game assets
 - **Flask** - For the backend framework
 - All open-source contributors whose libraries made this possible
-
-
+- Cursor AI for speeding up repetitive animation boilerplate and formatting
+(core game logic and CV pipeline are written by hand)
