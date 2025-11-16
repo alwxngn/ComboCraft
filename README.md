@@ -190,6 +190,10 @@ This project was created for a hackathon event.
 ## 👥 Team
 
 Created by the ComboCraft team.
+- Ally Chen
+- Alan Nguyen
+- Alex Chen
+- Mehul Munankarmim
 
 ## 🙏 Acknowledgments
 
@@ -198,6 +202,4 @@ Created by the ComboCraft team.
 - **Flask** - For the backend framework
 - All open-source contributors whose libraries made this possible
 
----
 
-**Made with ❤️ for hackathon**
