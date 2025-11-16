@@ -84,7 +84,7 @@ body{
 /* Animation sprites */
 .fireball-sprite {
     image-rendering: pixelated; /* Keep pixel art crisp */
-    pointer-events: none; /* Don't block clicks */
+    pointer-events: none;
     width: 200px;
     height: 100px;
 }
@@ -94,7 +94,7 @@ body{
     height: 1200px;
     image-rendering: pixelated;
     position: absolute;
-    bottom: 40px;
+    bottom: -10px;
     right: -600px;
 }
 

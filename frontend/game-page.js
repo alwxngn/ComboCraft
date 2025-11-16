@@ -7,6 +7,8 @@ let comboCount = 0; // <-- FIX 2.1: Declared comboCount here
 // Animation variables
 let activeAnimations = [];
 let lastHandPosition = null;
+let demonAnimationState = 'idle'; // 'idle' or 'hit'
+let demonIdleInterval = null;
 
 // Wait for page to load
 document.addEventListener('DOMContentLoaded', function() {
@@ -187,6 +189,7 @@ function playFireballAnimation() {
         if (currentX > targetX) {
             clearInterval(animationInterval);
             fireball.remove();
+            playDemonHitAnimation(10); // Trigger hit animation with 10 damage
         }
     }, frameInterval);
 }
@@ -205,10 +208,42 @@ function startDemonIdleAnimation() {
     
     let currentFrame = 0;
     
-    setInterval(() => {
-        currentFrame = (currentFrame + 1) % idleFrames.length;
-        demonSprite.src = `../assets/demon idle/${idleFrames[currentFrame]}`;
+    demonIdleInterval = setInterval(() => {
+        if (demonAnimationState === 'idle') {
+            currentFrame = (currentFrame + 1) % idleFrames.length;
+            demonSprite.src = `../assets/demon idle/${idleFrames[currentFrame]}`;
+        }
     }, 150); // 150ms per frame for smooth idle animation
+}
+
+// Demon take hit animation
+function playDemonHitAnimation(damage = 0) {
+    const demonSprite = document.getElementById('demon-sprite');
+    const hitFrames = [
+        'demon_take_hit_1.png',
+        'demon_take_hit_2.png',
+        'demon_take_hit_3.png',
+        'demon_take_hit_4.png',
+        'demon_take_hit_5.png'
+    ];
+    
+    demonAnimationState = 'hit';
+    let currentFrame = 0;
+    
+    const hitInterval = setInterval(() => {
+        if (currentFrame < hitFrames.length) {
+            demonSprite.src = `../assets/demon_take_hit/${hitFrames[currentFrame]}`;
+            currentFrame++;
+        } else {
+            clearInterval(hitInterval);
+            demonAnimationState = 'idle'; // Return to idle
+            
+            // Apply damage after hit animation completes
+            if (damage > 0) {
+                updateBossHealth(bossHealth - damage);
+            }
+        }
+    }, 100); // 100ms per frame for hit animation
 }
 
 // ALEXES CONNECTOR TO SORCERER
@@ -243,7 +278,7 @@ async function gameLoop(){
     if (command === "FIREBALL") {
         let damage = 10
         playFireballAnimation();
-        updateBossHealth(bossHealth - damage);
+        // Damage will be applied after hit animation completes
     }
 
     else if (command === "ICE_SHARD") {
