@@ -158,10 +158,15 @@ Dynamic boss encounters:
 ## 📸 Screenshots
 
 <!-- Add screenshots here -->
-- *Screenshot 1: Gameplay with gesture detection*
-- *Screenshot 2: Combo execution*
-- *Screenshot 3: Victory screen*
-- *Screenshot 4: Boss animations*
+- *Screenshot 1: Title Screen*
+- <img width="3420" height="2214" alt="image" src="https://github.com/user-attachments/assets/dd6d8c77-a3bd-442a-82b6-1f5c7ad5e4b3" />
+- *Screenshot 2: Gameplay with gesture detection*
+  <img width="3420" height="2214" alt="image" src="https://github.com/user-attachments/assets/92794358-7fd1-4012-a4b6-6010a0a54eb9" />
+- *Screenshot 3: Controls*
+  <img width="3420" height="2214" alt="image" src="https://github.com/user-attachments/assets/c1d6a357-77b7-481c-b66b-7e69198a4d4b" />
+- *Screenshot 4: Bosses*
+  <img width="3420" height="2214" alt="image" src="https://github.com/user-attachments/assets/b385954c-4208-48d5-8653-51cfdf6f4197" />
+
 
 ## 🎥 Demo Video
 
