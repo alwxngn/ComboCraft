@@ -8,9 +8,69 @@ let comboCount = 0; // <-- FIX 2.1: Declared comboCount here
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Game loaded!");
     resetHealth();
+    startWebcam(); // <-- Start the webcam
     gameRunning = true; // <-- START THE GAME!
     gameLoop();         // <-- START THE LOOP!
 });
+
+// Function to start webcam with hand tracking
+function startWebcam() {
+    const videoElement = document.getElementById('webcam');
+    const canvasElement = document.getElementById('output-canvas');
+    const canvasCtx = canvasElement.getContext('2d');
+
+    // Initialize MediaPipe Hands
+    const hands = new Hands({
+        locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        }
+    });
+
+    hands.setOptions({
+        maxNumHands: 2,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.7,
+        minTrackingConfidence: 0.5
+    });
+
+    hands.onResults((results) => {
+        // Set canvas size to match video
+        canvasElement.width = videoElement.videoWidth;
+        canvasElement.height = videoElement.videoHeight;
+
+        // Clear and draw the video frame
+        canvasCtx.save();
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+        // Draw hand landmarks
+        if (results.multiHandLandmarks) {
+            for (const landmarks of results.multiHandLandmarks) {
+                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, 
+                    {color: '#00FF00', lineWidth: 3});
+                drawLandmarks(canvasCtx, landmarks, 
+                    {color: '#FF0000', lineWidth: 1, radius: 3});
+            }
+        }
+        canvasCtx.restore();
+    });
+
+    // Start camera
+    const camera = new Camera(videoElement, {
+        onFrame: async () => {
+            await hands.send({image: videoElement});
+        },
+        width: 600,
+        height: 700
+    });
+    
+    camera.start().then(() => {
+        console.log('📹 Webcam with hand tracking started!');
+    }).catch((error) => {
+        console.error('Error accessing webcam:', error);
+        alert('Could not access webcam. Please allow camera permissions.');
+    });
+}
 
 // Function to update player health
 function updatePlayerHealth(newHealth) {
