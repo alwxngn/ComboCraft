@@ -33,6 +33,7 @@ let gameStartTime = Date.now();
 let finisherMode = false;
 let finisherIceShardCount = 0;
 let finisherTimeout = null;
+let finisherMessageShown = false;
 const FINISHER_TIME_LIMIT = 10000;
 
 let hintShown = false;
@@ -97,6 +98,8 @@ window.GameState = {
     setFinisherIceShardCount: (value) => { finisherIceShardCount = value; },
     getFinisherTimeout: () => finisherTimeout,
     setFinisherTimeout: (value) => { finisherTimeout = value; },
+    getFinisherMessageShown: () => finisherMessageShown,
+    setFinisherMessageShown: (value) => { finisherMessageShown = value; },
     FINISHER_TIME_LIMIT,
     
     getHintShown: () => hintShown,

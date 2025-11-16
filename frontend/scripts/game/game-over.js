@@ -68,10 +68,11 @@ function checkGameEnd() {
                 window.GameOver.showGameOverScreen(false);
             }
         }, 100);
-    } else if (bossHealth <= 0 && gameRunning && !finisherMode) {
+    } else if (bossHealth <= 0 && gameRunning && !finisherMode && !window.GameState.getFinisherMessageShown()) {
         console.log('Boss defeated! FINISHER MODE ACTIVATED!');
         window.GameState.setFinisherMode(true);
         window.GameState.setFinisherIceShardCount(0);
+        window.GameState.setFinisherMessageShown(true);
         
         if (window.Finisher && window.Finisher.showFinisherMessage) {
             window.Finisher.showFinisherMessage();
@@ -96,6 +97,11 @@ function showGameOverScreen(isVictory) {
     const existingOverlay = document.getElementById('game-over-overlay');
     if (existingOverlay) {
         existingOverlay.remove();
+    }
+    
+    const finisherMessage = document.getElementById('finisher-message-overlay');
+    if (finisherMessage) {
+        finisherMessage.remove();
     }
     
     const overlay = document.createElement('div');
@@ -355,6 +361,7 @@ function replayGame() {
     window.GameState.setComboJustReset(true);
     window.GameState.setFinisherMode(false);
     window.GameState.setFinisherIceShardCount(0);
+    window.GameState.setFinisherMessageShown(false);
     
     const finisherTimeout = window.GameState.getFinisherTimeout();
     if (finisherTimeout) {
