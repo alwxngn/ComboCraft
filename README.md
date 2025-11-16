@@ -1,10 +1,10 @@
-# 🔥 ComboCraft - Gesture-Controlled Boss Battle Game
+# ComboCraft - Gesture-Controlled Computer Vision Boss Battle Game
 
 [![Demo Video](https://img.youtube.com/vi/YOUR_VIDEO_ID/maxresdefault.jpg)](https://youtube.com/watch?v=YOUR_VIDEO_ID)
 
 A real-time boss battle game controlled entirely through hand gestures using MediaPipe computer vision. Cast spells, execute combos, and defeat the demon boss using only your hands!
 
-## ✨ Features
+## Features
 
 - 🎮 **Real-time hand gesture recognition** - Using MediaPipe Hands for accurate gesture detection
 - 🧙 **3 unique spells** - Fireball, Ice Shard, and Lightning
