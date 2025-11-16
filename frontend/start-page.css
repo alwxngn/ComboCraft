@@ -1,7 +1,8 @@
 body{
 background-image: url('assets/comboCraft-start.jpg');  
 background-size: 100%;  
-text-align: center; 
+text-align: center;
+background-repeat: no-repeat; 
 }
 
 h1{
