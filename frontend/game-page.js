@@ -19,7 +19,7 @@ Object.values(sounds).forEach(sound => {
     sound.volume = 0.5;
 });
 
-sounds.backgroundMusic.volume = 0.3;
+sounds.backgroundMusic.volume = 0.5;
 sounds.backgroundMusic.loop = true;
 
 // Mana system
@@ -941,7 +941,7 @@ function playIceShardAnimation() {
     // Play sound effect
     if (sounds.iceShard) {
         const sound = sounds.iceShard.cloneNode();
-        sound.volume = 0.6;
+        sound.volume = 0.9;
         sound.play().catch(err => console.log("Sound play failed:", err));
     }
     const boxContainer = document.querySelector('.box-container');
