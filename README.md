@@ -1,4 +1,4 @@
-# ComboCraft - Gesture-Controlled Computer Vision Boss Battle Game
+# ComboCraft - Gesture-Controlled CV Battle Game
 
 [![Demo Video](https://img.youtube.com/vi/YOUR_VIDEO_ID/maxresdefault.jpg)](https://youtube.com/watch?v=YOUR_VIDEO_ID)
 
