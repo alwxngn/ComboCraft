@@ -1,8 +1,11 @@
 body{
-background-image: url('assets/comboCraft-start.jpg');  
-background-size: 100%;  
+background-image: url('../assets/comboCraft-start.jpg');  
+background-size: cover;  
 text-align: center;
 background-repeat: no-repeat; 
+background-position: center;
+min-height: 100vh;
+margin: 0;
 }
 
 h1{
@@ -16,3 +19,5 @@ button{
     width: 400px;
     font-size: 40px;
 }
+
+/* add game intro */

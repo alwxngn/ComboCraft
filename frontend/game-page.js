@@ -20,11 +20,28 @@ document.addEventListener('DOMContentLoaded', function() {
     gameLoop();         // <-- START THE LOOP!
 });
 
-// Function to start webcam with hand tracking
+// Function to start webcam with hand tracking and background removal
 function startWebcam() {
     const videoElement = document.getElementById('webcam');
     const canvasElement = document.getElementById('output-canvas');
     const canvasCtx = canvasElement.getContext('2d');
+
+    let segmentationMask = null;
+
+    // Initialize MediaPipe Selfie Segmentation
+    const selfieSegmentation = new SelfieSegmentation({
+        locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
+        }
+    });
+
+    selfieSegmentation.setOptions({
+        modelSelection: 1, // 0 for general, 1 for landscape (better quality)
+    });
+
+    selfieSegmentation.onResults((results) => {
+        segmentationMask = results.segmentationMask;
+    });
 
     // Initialize MediaPipe Hands
     const hands = new Hands({
@@ -45,10 +62,36 @@ function startWebcam() {
         canvasElement.width = videoElement.videoWidth;
         canvasElement.height = videoElement.videoHeight;
 
-        // Clear and draw the video frame
         canvasCtx.save();
         canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-        canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+        // Apply background removal if mask is available
+        if (segmentationMask) {
+            // Draw only the person (where mask is white)
+            canvasCtx.globalCompositeOperation = 'copy';
+            canvasCtx.filter = 'none';
+            
+            // Create a temporary canvas for the masked person
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvasElement.width;
+            tempCanvas.height = canvasElement.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // Draw the video frame
+            tempCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+            
+            // Apply the mask
+            tempCtx.globalCompositeOperation = 'destination-in';
+            tempCtx.drawImage(segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
+            
+            // Draw the masked person onto the main canvas
+            canvasCtx.drawImage(tempCanvas, 0, 0);
+        } else {
+            // Fallback: draw video frame without segmentation
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+        }
+
+        canvasCtx.globalCompositeOperation = 'source-over';
 
         // Draw hand landmarks and track hand position
         if (results.multiHandLandmarks) {
@@ -72,6 +115,7 @@ function startWebcam() {
     // Start camera
     const camera = new Camera(videoElement, {
         onFrame: async () => {
+            await selfieSegmentation.send({image: videoElement});
             await hands.send({image: videoElement});
         },
         width: 600,
@@ -79,7 +123,7 @@ function startWebcam() {
     });
     
     camera.start().then(() => {
-        console.log('📹 Webcam with hand tracking started!');
+        console.log('📹 Webcam with hand tracking and background removal started!');
     }).catch((error) => {
         console.error('Error accessing webcam:', error);
         alert('Could not access webcam. Please allow camera permissions.');

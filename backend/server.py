@@ -19,7 +19,7 @@ last_gesture = "NONE"
 last_gesture_time = 0
 combo_counter = 0
 
-ATTACK_COOLDOWN = 0  # seconds
+ATTACK_COOLDOWN = 1  # seconds
 last_attack_time = 0
 
 
