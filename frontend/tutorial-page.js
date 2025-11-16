@@ -357,6 +357,7 @@ function showCountdownScreen() {
         font-family: 'Press Start 2P', cursive;
         margin-bottom: 30px;
         animation: pulse 0.5s ease-in-out;
+        line-height: 1.6;
     `;
     
     const tipText = document.createElement('div');
