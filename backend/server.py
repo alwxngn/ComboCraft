@@ -23,6 +23,20 @@ browser_gesture = "NONE"  # Gesture received from browser
 ATTACK_COOLDOWN = 0  # seconds (cooldown disabled)
 last_attack_time = 0
 
+# Mana system
+MAX_MANA = 100
+current_mana = 100
+last_mana_regen_time = time.time()
+MANA_REGEN_RATE = 5  # mana per second when not attacking
+MANA_COSTS = {
+    "FIREBALL": 20,
+    "ICE_SHARD": 15,
+    "LIGHTNING": 25,
+    "EXPLOSION_COMBO": 35,
+    "HEALING_LIGHT_COMBO": 30,
+    "PUNCH_COMBO": 10
+}
+
 # event logic
 
 current_event = "NONE"
@@ -53,12 +67,29 @@ def set_gesture():
     browser_gesture = data.get('gesture', 'NONE')
     return jsonify({'status': 'ok'})
 
+@app.route('/add_mana', methods=['POST'])
+def add_mana():
+    """Add mana when player hits a mana ball"""
+    global current_mana
+    data = request.json
+    mana_amount = data.get('amount', 20)
+    current_mana = min(MAX_MANA, current_mana + mana_amount)
+    return jsonify({'status': 'ok', 'mana': current_mana})
+
 @app.route('/get_command')
 def get_command():
     """
     This is the "API" that the JavaScript game calls 60 times a second.
     """
-    global browser_gesture
+    global browser_gesture, current_mana, last_mana_regen_time
+    
+    # Regenerate mana over time
+    current_time = time.time()
+    time_since_regen = current_time - last_mana_regen_time
+    if time_since_regen >= 0.1:  # Update every 100ms
+        mana_regen = MANA_REGEN_RATE * time_since_regen
+        current_mana = min(MAX_MANA, current_mana + mana_regen)
+        last_mana_regen_time = current_time
     
     # 1. Get the gesture from browser MediaPipe detection
     current_gesture = browser_gesture
@@ -109,9 +140,16 @@ def get_command():
                 command = "LIGHTNING"
                 combo_counter += 1
 
+            # Check if player has enough mana
             if command != "NONE":
-                last_attack_time = current_time
-                print(f"⚡ COMMAND SENT: {command}")
+                mana_cost = MANA_COSTS.get(command, 0)
+                if current_mana >= mana_cost:
+                    current_mana -= mana_cost
+                    last_attack_time = current_time
+                    print(f"⚡ COMMAND SENT: {command} (Mana: {current_mana}/{MAX_MANA})")
+                else:
+                    command = "INSUFFICIENT_MANA"
+                    print(f"❌ Not enough mana for {command}! Need {mana_cost}, have {current_mana}")
 
         else:
             print("Spell on cooldown...")
@@ -187,7 +225,8 @@ def get_command():
                     "combo": combo_counter, 
                     "gesture": current_gesture,
                     "cooldown": cooldown_time,
-
+                    "mana": current_mana,
+                    "max_mana": MAX_MANA,
                     "challenge_progress": challenge_progress,
                     "challenge_target": challenge_target   
 
