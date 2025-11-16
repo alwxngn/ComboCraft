@@ -350,10 +350,10 @@ function showCountdownScreen() {
     const countdownNumber = document.createElement('div');
     countdownNumber.id = 'countdown-number';
     countdownNumber.style.cssText = `
-        font-size: 72px;
+        font-size: 120px;
         font-weight: 400;
-        color: #FFD700;
-        text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+        color: #d4a060;
+        text-shadow: 0 0 15px rgba(212, 184, 96, 0.6), 0 0 30px rgba(180, 120, 70, 0.4), 1px 1px 3px rgba(0, 0, 0, 0.8);
         font-family: 'Press Start 2P', cursive;
         margin-bottom: 30px;
         animation: pulse 0.5s ease-in-out;
@@ -363,16 +363,16 @@ function showCountdownScreen() {
     const tipText = document.createElement('div');
     tipText.id = 'countdown-tip';
     tipText.style.cssText = `
-        font-size: 12px;
-        color: #00FF00;
+        font-size: 14px;
+        color: #c4b090;
         margin-top: 40px;
         font-weight: 400;
-        font-family: 'Press Start 2P', cursive;
-        text-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
+        text-shadow: 0 0 6px rgba(180, 160, 120, 0.4), 1px 1px 2px rgba(0, 0, 0, 0.8);
         max-width: 600px;
         line-height: 1.8;
+        font-family: 'Press Start 2P', cursive;
     `;
-    tipText.textContent = '💡 TIP: Pick up mana and health orbs by connecting your spells to them!                This boss will have three stages';
+    tipText.textContent = 'TIP: PICK UP MANA AND HEALTH ORBS BY CONNECTING YOUR SPELLS TO THEM! THIS BOSS WILL HAVE THREE STAGES';
     
     countdownContent.appendChild(countdownNumber);
     countdownContent.appendChild(tipText);
@@ -387,6 +387,9 @@ function showCountdownScreen() {
         count--;
         if (count > 0) {
             countdownNumber.textContent = count;
+            // Use muted colors for numbers (3, 2, 1)
+            countdownNumber.style.color = '#d4a060';
+            countdownNumber.style.textShadow = '0 0 15px rgba(212, 184, 96, 0.6), 0 0 30px rgba(180, 120, 70, 0.4), 1px 1px 3px rgba(0, 0, 0, 0.8)';
             // Add pulse animation
             countdownNumber.style.animation = 'none';
             setTimeout(() => {
@@ -394,9 +397,10 @@ function showCountdownScreen() {
             }, 10);
         } else if (count === 0) {
             countdownNumber.textContent = 'GO!';
-            countdownNumber.style.fontSize = '84px';
+            countdownNumber.style.fontSize = '140px';
+            // GO should be green
             countdownNumber.style.color = '#00FF00';
-            countdownNumber.style.textShadow = '0 0 40px rgba(0, 255, 0, 1)';
+            countdownNumber.style.textShadow = '0 0 20px rgba(0, 255, 0, 0.8), 0 0 40px rgba(0, 255, 0, 0.6), 1px 1px 3px rgba(0, 0, 0, 0.8)';
         } else {
             clearInterval(countdownInterval);
             // Redirect to game
