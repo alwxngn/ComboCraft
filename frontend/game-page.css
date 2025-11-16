@@ -33,7 +33,7 @@ body::before {
     animation: lavaFlow 20s ease-in-out infinite;
 }
 
-/* Animated fire particles overlay */
+/* Animated fire particles overlay - made transparent */
 body::after {
     content: '';
     position: fixed;
@@ -41,13 +41,8 @@ body::after {
     left: 0;
     width: 100%;
     height: 100%;
-    background: 
-        radial-gradient(circle at 10% 90%, rgba(255, 100, 0, 0.3) 0%, transparent 20%),
-        radial-gradient(circle at 30% 85%, rgba(255, 200, 0, 0.2) 0%, transparent 25%),
-        radial-gradient(circle at 70% 88%, rgba(255, 100, 0, 0.3) 0%, transparent 20%),
-        radial-gradient(circle at 90% 92%, rgba(255, 200, 0, 0.2) 0%, transparent 25%);
+    background: transparent;
     z-index: -1;
-    animation: fireFlicker 3s ease-in-out infinite;
     pointer-events: none;
 }
 
@@ -108,7 +103,7 @@ body::after {
     font-weight: 700;
     letter-spacing: 2px;
     color: #ff6347;
-    text-shadow: 0 0 10px rgba(255, 99, 71, 0.8);
+    text-shadow: none;
     margin-bottom: 8px;
     text-transform: uppercase;
 }
@@ -123,9 +118,7 @@ body::after {
     position: relative;
     overflow: hidden;
     border-radius: 8px;
-    box-shadow: 
-        0 0 15px rgba(255, 69, 0, 0.4),
-        inset 0 0 10px rgba(0, 0, 0, 0.5);
+    box-shadow: none;
 }
 
 .hp-bar-fill {
@@ -136,10 +129,8 @@ body::after {
     position: absolute;
     top: 0;
     left: 0;
-    box-shadow: 
-        0 0 20px rgba(255, 69, 0, 0.6),
-        inset 0 0 15px rgba(255, 140, 0, 0.4);
-    animation: hpPulse 2s ease-in-out infinite;
+    box-shadow: none;
+    animation: none;
 }
 
 @keyframes hpPulse {
@@ -160,9 +151,7 @@ body::after {
     position: relative;
     overflow: hidden;
     border-radius: 8px;
-    box-shadow: 
-        0 0 15px rgba(65, 105, 225, 0.4),
-        inset 0 0 10px rgba(0, 0, 0, 0.5);
+    box-shadow: none;
 }
 
 .mana-bar-fill {
@@ -173,10 +162,8 @@ body::after {
     position: absolute;
     top: 0;
     left: 0;
-    box-shadow: 
-        0 0 20px rgba(100, 181, 246, 0.6),
-        inset 0 0 15px rgba(25, 118, 210, 0.4);
-    animation: manaPulse 2.5s ease-in-out infinite;
+    box-shadow: none;
+    animation: none;
 }
 
 @keyframes manaPulse {
@@ -262,6 +249,21 @@ body::after {
     margin: 20px;
     mask-image: radial-gradient(ellipse 80% 80% at center, black 60%, transparent 100%);
     -webkit-mask-image: radial-gradient(ellipse 80% 80% at center, black 60%, transparent 100%);
+    z-index: 1;
+}
+
+.boss-box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+    overflow: visible;
+    margin-left: -300px;
+    border: none !important;
+    box-shadow: none !important;
+    background: none !important;
 }
 
 #webcam {
@@ -303,7 +305,7 @@ body::after {
     image-rendering: pixelated;
     position: absolute;
     bottom: -5px;
-    right: -600px;
+    right: -800px;
 }
 
 /* Event message styling - at the top */
@@ -323,14 +325,9 @@ body::after {
     border: 3px solid #ff4500;
     text-align: center;
     z-index: 1000;
-    text-shadow: 
-        0 0 20px rgba(255, 69, 0, 0.8),
-        2px 2px 4px rgba(0, 0, 0, 0.9);
-    box-shadow: 
-        0 0 40px rgba(255, 69, 0, 0.6),
-        inset 0 0 20px rgba(255, 140, 0, 0.3),
-        0 10px 30px rgba(0, 0, 0, 0.8);
-    animation: eventPulse 2s ease-in-out infinite;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
+    box-shadow: none;
+    animation: none;
     text-transform: uppercase;
 }
 

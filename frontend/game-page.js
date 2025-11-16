@@ -44,7 +44,7 @@ let demonIdleInterval = null;
 let demonHitInterval = null; // Track hit animation interval
 let demonCleaveInterval = null; // Track cleave animation interval
 let lastBossAttackCheck = 0; // Track last boss attack check time
-const BOSS_ATTACK_CHECK_INTERVAL = 300; // Check every 300ms for more frequent attacks
+const BOSS_ATTACK_CHECK_INTERVAL = 1500; // Check every 1500ms (1.5 seconds)
 
 // Boss phase system
 let currentBossPhase = 1; // 1 = Normal (66-100%), 2 = Enraged (33-66%), 3 = Final Form (0-33%)
@@ -169,8 +169,8 @@ function startWebcam() {
 
     hands.setOptions({
         maxNumHands: 2,
-        modelComplexity: 1,
-        minDetectionConfidence: 0.7,
+        modelComplexity: 0, // Reduced from 1 to 0 for better performance
+        minDetectionConfidence: 0.5, // Reduced from 0.7 for faster detection
         minTrackingConfidence: 0.5
     });
 
@@ -390,7 +390,7 @@ function onBossPhaseChange(phase) {
         case 2: // Enraged
             console.log('🔥 BOSS PHASE 2: ENRAGED!');
             demonSprite.style.filter = 'brightness(1.2) saturate(1.5) hue-rotate(350deg)';
-            demonSprite.style.boxShadow = '0 0 30px rgba(255, 0, 0, 0.8), 0 0 60px rgba(255, 69, 0, 0.6)';
+            demonSprite.style.boxShadow = 'none';
             if (eventDisplay) {
                 eventDisplay.textContent = 'BOSS ENRAGED!';
                 eventDisplay.style.animation = 'none';
@@ -406,27 +406,16 @@ function onBossPhaseChange(phase) {
             console.log('💀 BOSS PHASE 3: FINAL FORM!');
             // Very dark with crazy color cycling
             demonSprite.style.filter = 'brightness(0.7) saturate(2.5) hue-rotate(0deg) contrast(1.5)';
-            demonSprite.style.boxShadow = '0 0 50px rgba(75, 0, 130, 1), 0 0 100px rgba(139, 0, 139, 0.9), 0 0 150px rgba(25, 25, 112, 0.8), 0 0 200px rgba(139, 0, 0, 0.7)';
+            demonSprite.style.boxShadow = 'none';
             
             // Back and forth movement - moves backward (away) then returns to original
-            bossBox.style.animation = 'bossMoveBackAway 3s ease-in-out infinite, bossFinalFormPulse 2s ease-in-out infinite';
+            const randomSpeed = 1.5 + Math.random() * 1.5; // Random speed between 1.5s and 3s
+            bossBox.style.animation = `bossMoveBackAway ${randomSpeed}s ease-in-out infinite`;
             
             // Add color cycling effect
             if (!document.getElementById('boss-final-form-color-cycle')) {
                 const colorCycle = setInterval(() => {
-                    const hue = (Date.now() / 20) % 360;
-                    const shadowColors = [
-                        `hsla(${hue}, 100%, 30%, 1)`,
-                        `hsla(${(hue + 60) % 360}, 100%, 25%, 0.9)`,
-                        `hsla(${(hue + 120) % 360}, 100%, 20%, 0.8)`,
-                        `hsla(${(hue + 180) % 360}, 100%, 15%, 0.7)`
-                    ];
-                    demonSprite.style.boxShadow = `
-                        0 0 50px ${shadowColors[0]},
-                        0 0 100px ${shadowColors[1]},
-                        0 0 150px ${shadowColors[2]},
-                        0 0 200px ${shadowColors[3]}
-                    `;
+                    // Color cycling disabled - no box shadow
                 }, 50);
                 
                 // Store interval so we can clear it later
@@ -461,7 +450,7 @@ function onBossPhaseChange(phase) {
                             transform: translateX(0) translateY(0);
                         }
                         50% {
-                            transform: translateX(800px) translateY(-15px);
+                            transform: translateX(-400px) translateY(-20px);
                         }
                     }
                 `;
@@ -2250,27 +2239,27 @@ async function gameLoop(){
         
         switch(currentBossPhase) {
             case 1: // Phase 1: Normal - Standard attacks
-                attackChance = 0.15; // 15% chance every 300ms
-                bossDamage = Math.floor(Math.random() * 12) + 8; // 8-20 damage
+                attackChance = 0.5; // 50% chance every 1.5s
+                bossDamage = Math.floor(Math.random() * 11) + 15; // 15-25 damage
                 attackType = 'cleave';
                 break;
                 
             case 2: // Phase 2: Enraged - Faster, stronger attacks
-                attackChance = 0.25; // 25% chance (more frequent)
-                bossDamage = Math.floor(Math.random() * 15) + 12; // 12-27 damage
+                attackChance = 0.65; // 65% chance every 1.5s
+                bossDamage = Math.floor(Math.random() * 11) + 15; // 15-25 damage
                 attackType = Math.random() < 0.7 ? 'cleave' : 'walk'; // 70% cleave, 30% walk
                 break;
                 
-            case 3: // Phase 3: Final Form - Multiple attack types (reduced damage)
-                attackChance = 0.25; // 25% chance (reduced from 35%)
-                bossDamage = Math.floor(Math.random() * 10) + 10; // 10-20 damage (reduced from 15-33)
+            case 3: // Phase 3: Final Form - Multiple attack types
+                attackChance = 0.75; // 75% chance every 1.5s
+                bossDamage = Math.floor(Math.random() * 11) + 15; // 15-25 damage
                 const rand = Math.random();
                 if (rand < 0.6) {
                     attackType = 'cleave';
                 } else if (rand < 0.85) {
                     attackType = 'walk';
                 } else {
-                    attackType = 'double'; // 15% chance for double attack (reduced)
+                    attackType = 'double'; // 15% chance for double attack
                 }
                 break;
         }
