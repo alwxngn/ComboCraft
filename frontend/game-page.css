@@ -349,7 +349,7 @@ body::after {
 /* Combo display styling */
 .combo-display {
     position: fixed;
-    top: 100px;
+    top: 150px;
     left: 50%;
     transform: translateX(-50%);
     font-family: 'Orbitron', sans-serif;
