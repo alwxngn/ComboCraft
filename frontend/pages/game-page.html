@@ -50,6 +50,22 @@
         </div>
     </div>
     <canvas id="canvas"></canvas>
+    
+    <!-- Load all game modules in order -->
+    <script type="text/javascript" src="../scripts/game/game-state.js"></script>
+    <script type="text/javascript" src="../scripts/game/audio.js"></script>
+    <script type="text/javascript" src="../scripts/game/gesture-detection.js"></script>
+    <script type="text/javascript" src="../scripts/game/ui-feedback.js"></script>
+    <script type="text/javascript" src="../scripts/game/collectibles.js"></script>
+    <script type="text/javascript" src="../scripts/game/visual-effects.js"></script>
+    <script type="text/javascript" src="../scripts/game/spell-animations.js"></script>
+    <script type="text/javascript" src="../scripts/game/boss-system.js"></script>
+    <script type="text/javascript" src="../scripts/game/game-over.js"></script>
+    <script type="text/javascript" src="../scripts/game/finisher.js"></script>
+    <script type="text/javascript" src="../scripts/game/hint.js"></script>
+    <script type="text/javascript" src="../scripts/game/game-loop.js"></script>
+    
+    <!-- Load main entry point last -->
     <script type="text/javascript" src="../scripts/game/game-page.js"></script>
 </body>
 </html>
