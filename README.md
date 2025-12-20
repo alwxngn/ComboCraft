@@ -200,7 +200,7 @@ This project was created for a hackathon event.
 Created by the ComboCraft team.
 - Ally Chen
 - Alan Nguyen
-- Alex Chen
+- Alex Nguyen
 - Mehul Munankarmim
 
 ## 🙏 Acknowledgments
