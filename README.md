@@ -1,213 +1,166 @@
-# ComboCraft - Gesture-Controlled CV Battle Game
+<h1 align="center">ComboCraft</h1>
 
-[demo link](https://www.youtube.com/watch?v=xNuD9hViZFQ)
+<p align="center"><b>Make a fist to throw a fireball, open your palm for ice, point to call lightning, and chain gestures into combos to bring down a three-phase demon boss, all with nothing but a webcam.</b></p>
 
-A real-time boss battle game controlled entirely through hand gestures using MediaPipe computer vision. Cast spells, execute combos, and defeat the demon boss using only your hands!
+<p align="center">
+  <a href="https://devpost.com/software/combocraft-azuynr"><img src="https://img.shields.io/badge/Winner-1st%20Place%20Overall%20%C2%B7%20QuackHacks%202025-gold?style=for-the-badge" alt="1st Place Overall, QuackHacks 2025"></a>
+</p>
 
-## 🎯 Features
+<p align="center">
+  <a href="https://devpost.com/software/combocraft-azuynr">Devpost</a> ·
+  <a href="https://www.youtube.com/watch?v=xNuD9hViZFQ">Demo video</a> ·
+  <a href="#run-locally">Run locally</a>
+</p>
 
--  **Real-time hand gesture recognition** - Using MediaPipe Hands for accurate gesture detection
--  **3 unique spells** - Fireball, Ice Shard, and Lightning
--  **Combo system** - Chain gestures together for devastating combo attacks
--  **Animated boss** - Multiple animation states (idle, hit, cleave, death)
--  **Mana system** - Strategic resource management with mana costs and regeneration
--  **Dynamic events** - Boss becomes weak to certain elements, creating tactical opportunities
--  **Visual feedback** - Real-time gesture detection feedback and damage numbers
--  **Sound effects & music** - Immersive audio for spells and background music
--  **Victory/Defeat screens** - Complete game experience with stats and replay
+<p align="center">
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black" alt="JavaScript">
+  <img src="https://img.shields.io/badge/HTML5_Canvas-E34F26?logo=html5&logoColor=white" alt="HTML5">
+  <img src="https://img.shields.io/badge/MediaPipe_Hands-0097A7?logo=google&logoColor=white" alt="MediaPipe Hands">
+  <img src="https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/Flask-000000?logo=flask&logoColor=white" alt="Flask">
+  <img src="https://img.shields.io/badge/scikit--learn_(experiment)-F7931E?logo=scikitlearn&logoColor=white" alt="scikit-learn (offline experiment)">
+</p>
 
-## 🚀 Quick Start
+<p align="center"><img width="860" alt="ComboCraft title screen" src="https://github.com/user-attachments/assets/f0af6b36-a2aa-4c19-87fa-1727a9e2dff9" /></p>
 
-### Prerequisites
-- Python 3.7+
-- Webcam
-- Modern web browser (Chrome, Firefox, Edge)
+**1st Place Overall at QuackHacks 2025 (QuackHacks 2.0, University of Oregon).**
 
-### Installation
+## Why it's cool
 
-1. **Clone the repository**
+ComboCraft turns your hand into the controller. MediaPipe tracks 21 hand landmarks through the webcam, and a lightweight rule-based classifier in the browser reads which fingers are extended to recognize a fist, an open palm, or a pointed finger. Each gesture casts a spell. Switching from one gesture to another triggers a combo such as Explosion or Healing Light. A small Flask game server runs the mana economy, combos, cooldowns, and timed weakness events, while the browser handles a boss that changes phase at 66% and 33% health. It's a complete game loop built in a weekend, from tutorial to finisher and defeat stats.
+
+## Highlights
+
+- **1st Place Overall** at QuackHacks 2025.
+- **3 gesture spells and 3 two-gesture combos**, recognized in the browser from MediaPipe's 21 hand landmarks.
+- **Server-side game rules:** 100 max mana regenerating at 12/s, spell costs of 15–40, and fire/ice weakness events that last 7 s with a 10 s cooldown.
+- **3-phase boss** (phase changes at 66% and 33% HP) with idle, walk, cleave, hit, and death sprite animations, plus a finisher sequence.
+- **Full game flow:** start page with Easy/Medium/Hard, instructions, an interactive tutorial, battle, a victory/defeat screen with spell-usage stats, and replay.
+- **Offline ML experiment:** a scikit-learn Random Forest gesture classifier with its own data-collection and training scripts.
+
+## Features
+
+- **Gesture spells.** Gestures are classified in the browser from the 21 MediaPipe hand landmarks:
+
+  | Gesture | Spell |
+  |---|---|
+  | FIST | Fireball |
+  | OPEN_PALM | Ice Shard |
+  | POINT (index finger only) | Lightning |
+
+- **Combos.** Two-gesture sequences trigger combo attacks:
+
+  | Sequence | Combo |
+  |---|---|
+  | Open palm → fist | Explosion |
+  | Open palm → point | Healing Light (damage + heal) |
+  | Point → fist | Lightning Strike |
+
+- **Mana economy.** Each spell costs mana: Fireball 20, Ice Shard 15, Lightning 25, combos 30–40. Mana regenerates over time, and the boss drops mana and healing orbs you can break for resources.
+- **Weakness events.** The boss periodically becomes weak to fire or ice for 7 seconds.
+- **Multi-phase boss.** The demon has idle, walk, cleave, hit, and death animations. A finisher sequence plays when it falls.
+- **Difficulty.** Choose Easy, Medium, or Hard on the start page.
+- **Full game flow.** Start page, instructions, interactive tutorial, battle, victory/defeat screens with spell-usage stats, and replay.
+- **Audio.** Background music and spell sound effects.
+
+<!-- Screenshots: gameplay / controls / bosses (existing attachments) -->
+<img width="860" alt="Gameplay with gesture detection" src="https://github.com/user-attachments/assets/8b4894c1-a0b4-433d-9d93-00c18a406be9" />
+
+## Engineering highlights
+
+| Area | What we built | Where |
+|---|---|---|
+| **Browser gesture recognition** | Compares each fingertip's and PIP joint's distance from the wrist to decide whether the finger is extended, then maps the extended-finger pattern to FIST, OPEN_PALM, or POINT. Rule-based, with no model download and no server round-trip for classification. | `frontend/scripts/game/gesture-detection.js` |
+| **Player cut-out** | MediaPipe Selfie Segmentation masks the webcam preview so only the player is drawn, without the room behind them. | `frontend/scripts/game/gesture-detection.js`, `frontend/scripts/tutorial/tutorial-page.js` |
+| **Game server** | Flask detects combos from gesture transitions and handles mana regeneration and costs, cooldowns, a weakness-event scheduler, and per-spell usage stats. The browser posts gestures (`/set_gesture`) and polls for commands (`/get_command`). | `backend/server.py`, `frontend/scripts/game/game-loop.js` |
+| **Boss AI & animation** | A health-based three-phase state machine drives sprite-sheet animations, spell effects, collectible mana and heal orbs, and a finisher. | `frontend/scripts/game/boss-system.js`, `spell-animations.js`, `collectibles.js`, `finisher.js` |
+| **Modular frontend** | The game is split into 13 focused modules (state, loop, audio, UI feedback, hints, and more) with no framework. | `frontend/scripts/game/` |
+| **Offline ML experiment** | Scripts collect labeled landmark data, train a scikit-learn Random Forest, and run an OpenCV desktop viewer. They aren't used by the shipped game. | `backend/models/`, `backend/data/` |
+
+## How it works
+
+```text
+Webcam → MediaPipe Hands + Selfie Segmentation (browser)
+       → rule-based gesture classifier  (frontend/scripts/game/gesture-detection.js)
+       → POST /set_gesture ─────────────► Flask game server (backend/server.py, :5001)
+                                           combo detection, mana, cooldowns, events, spell stats
+       ◄─ GET /get_command (polled) ──────┘
+       → canvas/DOM rendering: boss AI, spell animations, orbs, HUD (frontend/scripts/game/*)
+```
+
+The repository also contains an **offline gesture-ML experiment** in `backend/models/`: data collection, a scikit-learn Random Forest trainer, and an OpenCV/MediaPipe desktop viewer, with sample data in `backend/data/`. These scripts run on their own. The shipped game uses the browser classifier above.
+
+## Tech stack
+
+| Layer | Technologies |
+|---|---|
+| Frontend | HTML5, CSS3, vanilla JavaScript, MediaPipe Hands, MediaPipe Selfie Segmentation (CDN) |
+| Backend | Python, Flask, Flask-CORS |
+| Offline CV/ML experiments | OpenCV, MediaPipe (Python), scikit-learn |
+
+## Run locally
+
+**Requirements:** Python 3, a webcam, and Chrome, Edge, or Firefox.
+
+1. **Start the game server.** It listens on `http://localhost:5001`, which is hard-coded in the frontend.
    ```bash
-   git clone <repository-url>
-   cd MaaaQuackhack
-   ```
-
-2. **Install Python dependencies**
-   ```bash
-   pip install -r backend/requirements.txt
-   ```
-
-3. **Start the backend server**
-   ```bash
+   pip install flask flask-cors      # all the game server needs
    cd backend
    python server.py
    ```
-   The server will start on `http://localhost:5001`
+   `backend/requirements.txt` also lists `mediapipe` and `opencv-python`. Those are only needed for the offline scripts in `backend/models/`, and MediaPipe wheels may not be available for the newest Python versions.
 
-4. **Open the game**
-   - Open `frontend/index.html` in your web browser
-   - Or use a local server (recommended):
-     ```bash
-     # Using Python
-     python -m http.server 8000
-     # Then navigate to http://localhost:8000/frontend/
-     ```
+2. **Serve the frontend from the repository root.** Pages load assets via `../../assets/`.
+   ```bash
+   # in a second terminal, from the repo root
+   python -m http.server 8000
+   ```
+   Open **http://localhost:8000/frontend/pages/index.html** and allow camera access.
 
-5. **Allow camera permissions** when prompted
+No API keys or environment variables are required.
 
-6. **Start playing!**
-   - Make gestures with your hand in front of the camera
-   - See your spells cast in real-time
+## Project structure
 
-## 🎮 How to Play
-
-### Gestures
-- **FIST** (All fingers curled) → Fireball 🔥
-- **OPEN_PALM** (All fingers extended) → Ice Shard ❄️
-- **POINT** (Only index finger extended) → Lightning ⚡
-
-### Combos
-Chain gestures together for powerful combo attacks:
-- **OPEN_PALM → FIST** = Explosion Combo (25+ damage)
-- **OPEN_PALM → POINT** = Healing Light Combo (Damage + Heal)
-- **POINT → FIST** = Lightning Strike Combo (35 damage)
-
-### Strategy
-- Manage your mana wisely - each spell costs mana
-- Collect mana balls that spawn during battle
-- Watch for events - boss becomes weak to certain elements
-- Execute combos for massive damage
-- Time your attacks carefully - boss has cleave attacks!
-
-## 🛠️ Tech Stack
-
-### Frontend
-- **HTML5, CSS3, JavaScript** - Core web technologies
-- **MediaPipe Hands** - Real-time hand gesture recognition
-- **MediaPipe Selfie Segmentation** - Background removal
-- **Canvas API** - Game rendering
-
-### Backend
-- **Flask** - Python web framework
-- **Flask-CORS** - Cross-origin resource sharing
-- **MediaPipe** - Computer vision processing
-- **OpenCV** - Camera handling (optional)
-
-### Architecture
-```
-Browser (MediaPipe) 
-    ↓
-Frontend (JavaScript)
-    ↓
-Flask Backend (Python)
-    ↓
-Game Logic & State Management
-```
-
-## 📁 Project Structure
-
-```
-MaaaQuackhack/
+```text
+ComboCraft/
 ├── backend/
-│   ├── server.py              # Flask backend server
-│   ├── archmage_cv.py         # Computer vision module
-│   ├── requirements.txt       # Python dependencies
-│   └── ...
+│   ├── server.py              # Flask game server: combos, mana, events, stats
+│   ├── requirements.txt
+│   ├── models/                # offline gesture-ML + OpenCV experiments
+│   ├── data/                  # training samples and trained model for the experiments
+│   └── tests/test_camera.py   # webcam sanity check
 ├── frontend/
-│   ├── index.html             # Entry page
-│   ├── start-page.html        # Start screen
-│   ├── game-page.html         # Main game page
-│   ├── game-page.js           # Game logic
-│   ├── game-page.css          # Game styles
-│   └── ...
-├── assets/
-│   ├── sounds/                # Audio files
-│   ├── demon_*/               # Boss animations
-│   ├── fireball/              # Spell animations
-│   └── ...
-└── README.md
+│   ├── pages/                 # index, start, instructions, tutorial, game, defeat screens
+│   ├── scripts/game/          # game loop, gesture detection, boss AI, spells, orbs, audio, UI
+│   ├── scripts/tutorial/
+│   └── styles/
+└── assets/                    # boss/spell sprite sheets, backgrounds, sounds
 ```
 
-## 🎯 Key Features Explained
+## Team
 
-### Gesture Recognition
-Uses MediaPipe Hands to detect 21 hand landmarks in real-time. Gestures are classified based on finger extension states:
-- Detects when fingers are extended or curled
-- Recognizes FIST, OPEN_PALM, POINT, and other gestures
-- Runs at 60 FPS in the browser for low latency
+| Member | Focus (from repo history) |
+|---|---|
+| Ally Chen ([@allyytc](https://github.com/allyytc)) | Start page, health system, webcam integration, boss idle/hit and fireball animations, ice and lightning spells, instructions page with the fire-themed UI, split the frontend into modules, boss balance |
+| Alex Nguyen ([@alwxngn](https://github.com/alwxngn)) | Flask game server, mana bar and cooldowns, combo events, tutorial, finisher, spell-usage stats |
+| Alan Nguyen ([@ahlawnh](https://github.com/ahlawnh)) | Difficulty settings, boss phases, UI polish, file organization, README screenshots |
+| Mehul Munankarmi ([@mehulmuna](https://github.com/mehulmuna)) | Sprite and background art, sounds, defeat-bosses menu |
 
-### Combo System
-Advanced combo detection that recognizes gesture sequences:
-- Tracks gesture transitions
-- Rewards players for executing combos with bonus damage
-- Visual feedback with combo messages
+<!-- TODO(Ally): confirm teammate roles and handles before publishing. -->
 
-### Mana Management
-Strategic resource system:
-- Each spell has a mana cost
-- Mana regenerates over time
-- Mana balls spawn periodically for collection
-- Prevents spam casting
+## Challenges
 
-### Boss AI
-Dynamic boss encounters:
-- Multiple animation states
-- Random attack patterns
-- Phase-based difficulty
-- Weakness events for tactical gameplay
+- Running two MediaPipe models (hand tracking plus background segmentation) every frame strained performance and made gesture timing sensitive.
+- The first design polled the backend at 60 fps, which caused stutter. We had to rethink how often the client asks for commands.
+- Visually similar gestures were misclassified, so we redesigned the gesture set to reduce ambiguity.
+- Keeping gesture timing, animation states, and hit detection in sync for a multi-phase boss took several iterations.
 
-## 📸 Screenshots
+## What's next
 
-<!-- Add screenshots here -->
-- *Screenshot 1: Title Screen*
-   <img width="1710" height="980" alt="Screenshot 2025-11-16 at 9 58 58 AM" src="https://github.com/user-attachments/assets/f0af6b36-a2aa-4c19-87fa-1727a9e2dff9" />
-- *Screenshot 2: Gameplay with gesture detection*
-  <img width="1710" height="880" alt="Screenshot 2025-11-16 at 9 58 15 AM" src="https://github.com/user-attachments/assets/8b4894c1-a0b4-433d-9d93-00c18a406be9" />
-- *Screenshot 3: Controls*
-  <img width="1710" height="982" alt="Screenshot 2025-11-16 at 9 59 12 AM" src="https://github.com/user-attachments/assets/fe0ff8ee-4ea2-4d23-8b13-b9c8079737f8" />
-- *Screenshot 4: Bosses*
-  <img width="1710" height="982" alt="Screenshot 2025-11-16 at 9 59 05 AM" src="https://github.com/user-attachments/assets/bf0420f4-c1cf-4e9b-9907-7fd41410ca2d" />
+- Replace polling with WebSockets.
+- Add longer combo chains, more bosses and minions, and spell progression.
+- Use full-body tracking so players can dodge, duck, and kick.
 
+## Acknowledgments
 
-
-## 🎥 Demo Video
-
-<!-- Add link to demo video here -->
-[Watch Demo Video](https://www.youtube.com/watch?v=xNuD9hViZFQ)
-
-
-
-## 🔮 Future Improvements
-
-- [ ] Multiplayer support (2+ players)
-- [ ] More spell types and gestures
-- [ ] Custom ML models for improved gesture recognition
-- [ ] Leaderboard system
-- [ ] Difficulty levels
-- [ ] More boss types
-- [ ] Achievement system
-- [ ] Mobile support
-
-## 🤝 Contributing
-
-This is a hackathon project. Contributions and feedback are welcome!
-
-## 📝 License
-
-This project was created for a hackathon event.
-
-## 👥 Team
-
-Created by the ComboCraft team.
-- Ally Chen
-- Alan Nguyen
-- Alex Nguyen
-- Mehul Munankarmim
-
-## 🙏 Acknowledgments
-
-- **MediaPipe** - For amazing computer vision tools
-- **OpenGameArt** - For game assets
-- **Flask** - For the backend framework
-- All open-source contributors whose libraries made this possible
-- Cursor AI for speeding up repetitive animation boilerplate and formatting
-(core game logic and CV pipeline are written by hand)
+MediaPipe (Google), Flask, and OpenGameArt for game assets. Cursor was used for repetitive animation boilerplate and formatting. The core game logic and CV pipeline were written by the team.
