@@ -140,12 +140,12 @@ ComboCraft/
 
 ## Team
 
-| Member | Focus (from repo history) |
+| Member | Focus |
 |---|---|
-| Ally Chen ([@allyytc](https://github.com/allyytc)) | Start page, health system, webcam integration, boss idle/hit and fireball animations, ice and lightning spells, instructions page with the fire-themed UI, split the frontend into modules, boss balance |
-| Alex Nguyen ([@alwxngn](https://github.com/alwxngn)) | Flask game server, mana bar and cooldowns, combo events, tutorial, finisher, spell-usage stats |
-| Alan Nguyen ([@ahlawnh](https://github.com/ahlawnh)) | Difficulty settings, boss phases, UI polish, file organization, README screenshots |
-| Mehul Munankarmi ([@mehulmuna](https://github.com/mehulmuna)) | Sprite and background art, sounds, defeat-bosses menu |
+| Ally Chen ([@allyytc](https://github.com/allyytc)) | Game UI, game mechanics, webcam integration, player background removal, gesture model training, spells and animations |
+| Alex Nguyen ([@alwxngn](https://github.com/alwxngn)) | Flask game server, game mechanics, animations, mana and cooldowns, combo system, tutorial, finisher, spell-usage stats |
+| Alan Nguyen ([@ahlawnh](https://github.com/ahlawnh)) | Computer vision, boss phases, difficulty settings, UI polish, file organization |
+| Mehul Munankarmi ([@mehulmuna](https://github.com/mehulmuna)) | Sprite and background art, sound design, menus |
 
 <!-- TODO(Ally): confirm teammate roles and handles before publishing. -->
 
