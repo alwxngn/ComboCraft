@@ -143,9 +143,9 @@ ComboCraft/
 | Member | Focus |
 |---|---|
 | Ally Chen ([@allyytc](https://github.com/allyytc)) | Game UI, scikit-learn gesture model training, webcam integration, spells and animations |
-| Alex Nguyen ([@alwxngn](https://github.com/alwxngn)) | Flask game server, game mechanics, combo system, tutorial |
-| Alan Nguyen ([@ahlawnh](https://github.com/ahlawnh)) | Boss phases, difficulty, UI polish |
-| Mehul Munankarmi ([@mehulmuna](https://github.com/mehulmuna)) | Art, sound, menus |
+| Alex Nguyen ([@alwxngn](https://github.com/alwxngn)) | Flask game server, game mechanics, animations, mana and cooldowns, combo system, tutorial, finisher, spell-usage stats |
+| Alan Nguyen ([@ahlawnh](https://github.com/ahlawnh)) | Computer vision, boss phases, difficulty settings, UI polish, file organization |
+| Mehul Munankarmi ([@mehulmuna](https://github.com/mehulmuna)) | Sprite and background art, sound design, menus |
 
 <!-- TODO(Ally): confirm teammate roles and handles before publishing. -->
 
