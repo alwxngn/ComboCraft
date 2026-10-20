@@ -8,6 +8,7 @@
 
 <p align="center">
   <a href="https://devpost.com/software/combocraft-azuynr">Devpost</a> ·
+  <a href="https://www.quackhacks.org/quackpost/quackhacks-two/projects/8ea0a309-b515-4329-9189-7f8c0b1ab435">QuackHacks project page</a> ·
   <a href="https://www.youtube.com/watch?v=xNuD9hViZFQ">Demo video</a> ·
   <a href="#run-locally">Run locally</a>
 </p>
@@ -23,7 +24,7 @@
 
 <p align="center"><img width="860" alt="ComboCraft title screen" src="https://github.com/user-attachments/assets/f0af6b36-a2aa-4c19-87fa-1727a9e2dff9" /></p>
 
-**1st Place Overall at QuackHacks 2025 (QuackHacks 2.0, University of Oregon).**
+**1st Place Overall at QuackHacks 2025 ([QuackHacks 2.0](https://www.quackhacks.org/quackpost/quackhacks-two/projects/8ea0a309-b515-4329-9189-7f8c0b1ab435), University of Oregon).**
 
 ## Why it's cool
 
